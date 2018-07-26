@@ -1,6 +1,7 @@
 package main;
 
 import model.Attribute;
+import service.AprioriService;
 import service.ReadFileService;
 
 import java.io.IOException;
@@ -14,12 +15,14 @@ public class Application {
         try {
             List<Attribute> attributes = fileService.readFile("example.csv");
 
-            for (Attribute attribute : attributes) {
-                System.out.println(attribute.toString());
-            }
+            AprioriService aprioriService = new AprioriService(attributes, 0.1);
+            aprioriService.execute();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+
     }
 
 }
