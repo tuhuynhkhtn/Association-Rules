@@ -96,16 +96,18 @@ public class AprioriService {
         Map<List<Attribute>, Double> newMap = new HashMap<>();
 
         for (List<Attribute> keyList : keySet) {
+            int count = 0;
             for (Map.Entry<Integer, List<Attribute>> entry : rootDBTransaction.entrySet()) {
+
                 List<Attribute> entryValue = entry.getValue();
-                int count = 0;
+
                 if (entryValue.containsAll(keyList)) {
                     count++;
                 }
-                double minSuppTrans = count / (size * 1.0);
-                if (minSuppTrans >= minSupp) {
-                    newMap.put(keyList, minSuppTrans);
-                }
+            }
+            double minSuppTrans = count / (size * 1.0);
+            if (minSuppTrans >= minSupp) {
+                newMap.put(keyList, minSuppTrans);
             }
         }
         if (newMap.isEmpty()) {
