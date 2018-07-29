@@ -49,7 +49,9 @@ public class AprioriService {
         }
         System.out.println("Hoàn thành quá trình tạo luật phù hợp");
         WriteFileService fileService = new WriteFileService();
+        System.out.println("Đang ghi file FI.txt");
         fileService.writeItemSetToFile(resultF, "FI.txt");
+        System.out.println("Đang ghi file AR.txt");
         fileService.writeRulesToFile(associationRules, "AR.txt");
     }
 
