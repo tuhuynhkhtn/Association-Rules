@@ -1,0 +1,24 @@
+9
+﻿A	D	0.8
+﻿A	C	1.0
+B	C	0.6
+B	D	0.4
+﻿A	B	0.6
+C	D	0.8
+D	E	0.4
+﻿A	E	0.4
+C	E	0.4
+
+7
+﻿A	B	D	0.4
+﻿A	B	C	0.6
+﻿A	C	E	0.4
+B	C	D	0.4
+﻿A	C	D	0.8
+C	D	E	0.4
+﻿A	D	E	0.4
+
+2
+﻿A	C	D	E	0.4
+﻿A	B	C	D	0.4
+

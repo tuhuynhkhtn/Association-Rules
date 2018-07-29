@@ -15,7 +15,7 @@ public class Application {
         try {
             List<Attribute> attributes = fileService.readFile("example.csv");
 
-            AprioriService aprioriService = new AprioriService(attributes, 0.4);
+            AprioriService aprioriService = new AprioriService(attributes, 0.4, 0.9);
             aprioriService.execute();
         } catch (IOException e) {
             e.printStackTrace();

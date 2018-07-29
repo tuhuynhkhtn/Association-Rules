@@ -1,5 +1,6 @@
 package service;
 
+import main.Rule;
 import model.Attribute;
 
 import java.util.*;
@@ -8,14 +9,16 @@ public class AprioriService {
 
     private List<Attribute> attributes;
     private double minSupp;
+    private double minConf;
     private Map<List<Attribute>, Double> transactionMap;
     private Map<Integer, List<Attribute>> rootDBTransaction;
     private boolean isEnd = false;
     private int size = 0;
 
-    public AprioriService(List<Attribute> attributes, double minSupp) {
+    public AprioriService(List<Attribute> attributes, double minSupp, double minConf) {
         this.attributes = attributes;
         this.minSupp = minSupp;
+        this.minConf = minConf;
         buildRootDBTransaction();
     }
 
@@ -30,17 +33,24 @@ public class AprioriService {
                 resultF.add(transactionMap);
             step++;
         }
-        System.out.println("Luật kết hợp:");
+        System.out.println("Hoàn thành tạo các mẫu phổ biến");
+        System.out.println("================================");
+
+        Set<Rule> associationRules = new HashSet<>();
         for (Map<List<Attribute>, Double> f : resultF) {
-            Set<List<Attribute>> fSet = f.keySet();
-            for (List<Attribute> attributeList : fSet) {
-                for (Attribute attribute : attributeList) {
-                    System.out.print(attribute.getmName() + "\t");
+
+            for (Map.Entry<List<Attribute>, Double> entry : f.entrySet()) {
+                if (entry.getKey().size() == 2) continue;
+                List<Rule> result = createAssociationRule(entry);
+                if (!result.isEmpty()) {
+                    associationRules.addAll(result);
                 }
-                System.out.println();
             }
-            System.out.println();
         }
+        System.out.println("Hoàn thành quá trình tạo luật phù hợp");
+        WriteFileService fileService = new WriteFileService();
+        fileService.writeItemSetToFile(resultF, "FI.txt");
+        fileService.writeRulesToFile(associationRules, "AR.txt");
     }
 
     private void buildRootDBTransaction() {
@@ -60,6 +70,7 @@ public class AprioriService {
     }
 
     private void initCandidate() {
+        System.out.println("Khởi tạo cơ sở dữ liệu bảng");
         transactionMap = new HashMap<>();
         for (Attribute attribute : attributes) {
             int sum = 0;
@@ -92,6 +103,7 @@ public class AprioriService {
     }
 
     private Map<List<Attribute>, Double> calculateMinSupp(Map<List<Attribute>, Double> root) {
+        System.out.println("Loại bỏ ứng viên không phù hợp với minSupp");
         Set<List<Attribute>> keySet = root.keySet();
         Map<List<Attribute>, Double> newMap = new HashMap<>();
 
@@ -118,6 +130,7 @@ public class AprioriService {
     }
 
     private Map<List<Attribute>, Double> candidateGenerator(int step) {
+        System.out.println("Khởi tạo các mẫu ứng viên C" + step);
         Map<List<Attribute>, Double> resultList = new HashMap<>();
         List<List<Attribute>> keyList = new ArrayList<>(transactionMap.keySet());
         for (int i = 0; i < keyList.size() - 1; i++) {
@@ -146,5 +159,151 @@ public class AprioriService {
         }
         return resultList;
     }
+
+    private List<Rule> createAssociationRule(Map.Entry<List<Attribute>, Double> entry) {
+        List<Attribute> key = entry.getKey();
+        List<Rule> rules = new ArrayList<>();
+        System.out.println("Khởi tạo các luật có thể xảy ra");
+        for (int i = 0; i < key.size(); i++) {
+            Rule rule = new Rule();
+            rule.getResult().add(key.get(i));
+            int addedIndexAttribute = key.get(i).getmIndex();
+            for (int j = 0; j < key.size(); j++) {
+                if (key.get(j).getmIndex() != addedIndexAttribute) {
+                    rule.getClause().add(key.get(j));
+                }
+            }
+            rules.add(rule);
+        }
+
+        int level = 2;
+        List<Rule> previousResult = new ArrayList<>();
+        while (true) {
+            System.out.println("Tính toán minconf cho luật");
+            rules = calculateMinConf(rules);
+            System.out.println("Loại bỏ các luật không phù hợp với minConf");
+            rules = compactRules(rules);
+            if (level == 2 && !rules.isEmpty()) {
+                previousResult.addAll(rules);
+            }
+            if (!rules.isEmpty()) {
+                System.out.println("Phát sinh các luật mới từ các luật phù hợp trước đó");
+                rules = createRuleByLevel(rules, 2);
+                level++;
+            } else {
+                break;
+            }
+
+            if (!rules.isEmpty()) {
+                previousResult.addAll(rules);
+            } else {
+                break;
+            }
+        }
+        return previousResult;
+    }
+
+    private List<Rule> createRuleByLevel(List<Rule> rules, int level) {
+        List<Rule> newRules = new ArrayList<>();
+        Set<Attribute> keys = new HashSet<>();
+        for (Rule r : rules) {
+            keys.addAll(r.getAllAttributes());
+        }
+
+        for (int i = 0; i < rules.size() - 1; i++) {
+            for (int j = i + 1; j < rules.size(); j++) {
+                List<Attribute> firstList = rules.get(i).getResult();
+                List<Attribute> secondList = rules.get(j).getResult();
+                boolean isSimilar = true;
+                for (int k = 0; k < level - 1; k++) {
+                    if ((firstList.get(k).getmIndex() != secondList.get(k).getmIndex())
+                            && firstList.size() > 1 && secondList.size() > 1) {
+                        isSimilar = false;
+                        break;
+                    }
+                }
+                if (!isSimilar) continue;
+
+                Set<Attribute> attributeSet = new HashSet<>();
+                attributeSet.addAll(firstList);
+                attributeSet.addAll(secondList);
+
+                Rule rule = new Rule();
+                List<Attribute> attrKey = new ArrayList<>(keys);
+                List<Attribute> setList = new ArrayList<>(attributeSet);
+
+                rule.getResult().addAll(setList);
+                attrKey.removeAll(setList);
+                if (attrKey.isEmpty()) continue;
+                rule.getClause().addAll(attrKey);
+                newRules.add(rule);
+            }
+        }
+        return newRules;
+    }
+
+    private List<Rule> buildAssociationRule(Map<List<Attribute>, Double> itemSet) {
+        Map<List<Attribute>, Double> ruleList = new HashMap<>();
+
+        // initial rules
+        List<Rule> rules = new ArrayList<>();
+        for (Map.Entry<List<Attribute>, Double> entryItemSet : itemSet.entrySet()) {
+            List<Attribute> key = entryItemSet.getKey();
+            List<Attribute> dupKey = key;
+            int end = 0;
+            while (end < key.size()) {
+                Attribute attribute = key.get(end);
+                int posKey = key.indexOf(attribute);
+                dupKey = key.subList(posKey + 1, key.size());
+                Rule rule = new Rule();
+                rule.getResult().add(attribute);
+                rule.getClause().addAll(dupKey);
+                rules.add(rule);
+                end += key.size();
+            }
+        }
+
+        List<Rule> result = new ArrayList<>();
+
+        rules = calculateMinConf(rules);
+        rules = compactRules(rules);
+        if (!rules.isEmpty()) {
+            result.addAll(rules);
+        }
+
+        return result;
+    }
+
+    private List<Rule> calculateMinConf(List<Rule> root) {
+        for (Rule rule : root) {
+            int numAllAttributesAppeared = 0;
+            int numClauseAppeared = 0;
+            for (Map.Entry<Integer, List<Attribute>> entry : rootDBTransaction.entrySet()) {
+                List<Attribute> entryValue = entry.getValue();
+                if (entryValue.containsAll(rule.getAllAttributes())) {
+                    numAllAttributesAppeared++;
+                }
+                if (entryValue.containsAll(rule.getClause())) {
+                    numClauseAppeared++;
+                }
+            }
+
+            double minConf = (numAllAttributesAppeared * 1.0) / numClauseAppeared;
+            rule.setMinConf(minConf);
+        }
+        return root;
+    }
+
+    private List<Rule> compactRules(List<Rule> root) {
+        List<Rule> newRules = new ArrayList<>();
+        for (Rule rule : root) {
+            if (rule.getMinConf() >= minConf) {
+                newRules.add(rule);
+            }
+        }
+        return newRules;
+    }
+
+
 
 }
