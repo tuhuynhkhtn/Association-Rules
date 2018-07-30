@@ -1,4 +1,4 @@
-package service;
+﻿package service;
 
 import main.Rule;
 import model.Attribute;
@@ -49,10 +49,22 @@ public class AprioriService {
         }
         System.out.println("Hoàn thành quá trình tạo luật phù hợp");
         WriteFileService fileService = new WriteFileService();
-        System.out.println("Đang ghi file FI.txt");
+        System.out.println("Đang ghi file FI.txt...");
         fileService.writeItemSetToFile(resultF, "FI.txt");
-        System.out.println("Đang ghi file AR.txt");
+        waitMillisecond(600);
+        System.out.println("Hoàn tất ghi file FI.txt");
+        System.out.println("Đang ghi file AR.txt...");
         fileService.writeRulesToFile(associationRules, "AR.txt");
+        waitMillisecond(600);
+        System.out.println("Hoàn tất ghi file AR.txt");
+    }
+
+    public void waitMillisecond(long millisecond) {
+        try {
+            Thread.sleep(millisecond);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void buildRootDBTransaction() {
