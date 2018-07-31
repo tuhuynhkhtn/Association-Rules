@@ -1,4 +1,4 @@
-package service;
+﻿package service;
 
 import main.Rule;
 import model.Attribute;
@@ -8,6 +8,8 @@ import java.util.*;
 public class AprioriService {
 
     private List<Attribute> attributes;
+    private String fileNameOutFI;
+    private String fileNameOutAR;
     private double minSupp;
     private double minConf;
     private Map<List<Attribute>, Double> transactionMap;
@@ -15,11 +17,14 @@ public class AprioriService {
     private boolean isEnd = false;
     private int size = 0;
 
-    public AprioriService(List<Attribute> attributes, double minSupp, double minConf) {
+    public AprioriService(List<Attribute> attributes, String fileNameOutFI, String fileNameOutAR, String minSupp, String minConf) {
         this.attributes = attributes;
-        this.minSupp = minSupp;
-        this.minConf = minConf;
+        this.fileNameOutFI = fileNameOutFI;
+        this.fileNameOutAR = fileNameOutAR;
+        this.minSupp = Double.parseDouble(minSupp);
+        this.minConf = Double.parseDouble(minConf);
         buildRootDBTransaction();
+
     }
 
     public void execute() {
@@ -49,8 +54,24 @@ public class AprioriService {
         }
         System.out.println("Hoàn thành quá trình tạo luật phù hợp");
         WriteFileService fileService = new WriteFileService();
-        fileService.writeItemSetToFile(resultF, "FI.txt");
-        fileService.writeRulesToFile(associationRules, "AR.txt");
+        System.out.println("Đang ghi file FI.txt...");
+        //fileService.writeItemSetToFile(resultF, "FI.txt");
+        fileService.writeItemSetToFile(resultF, fileNameOutFI);
+        waitMillisecond(600);
+        System.out.println("Hoàn tất ghi file " + fileNameOutFI);
+        System.out.println("Đang ghi file AR.txt...");
+        //fileService.writeRulesToFile(associationRules, "AR.txt");
+        fileService.writeRulesToFile(associationRules,fileNameOutAR);
+        waitMillisecond(600);
+        System.out.println("Hoàn tất ghi file " + fileNameOutAR);
+    }
+
+    public void waitMillisecond(long millisecond) {
+        try {
+            Thread.sleep(millisecond);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void buildRootDBTransaction() {

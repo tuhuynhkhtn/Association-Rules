@@ -14,7 +14,7 @@ public class Application {
     @SuppressWarnings("resource")
 	public static void main(String[] args) {
         ReadFileService fileService = new ReadFileService();
-        try {
+        /*try {
             List<Attribute> attributes = fileService.readFile("example.csv");
 			System.out.println("Input minsup: ");
 			Float minsup = new Scanner(System.in).nextFloat();
@@ -27,6 +27,16 @@ public class Application {
 
             AprioriService aprioriService = new AprioriService(attributes, 0.4, 0.9);
             aprioriService.execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } */
+
+        try {
+            System.out.println(args[0]);
+            List<Attribute> attributes = fileService.readFile(args[1]);
+            AprioriService aprioriService = new AprioriService(attributes, args[2],args[3],args[4],args[5]);
+            aprioriService.execute();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
