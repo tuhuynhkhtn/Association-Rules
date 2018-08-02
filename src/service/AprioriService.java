@@ -1,4 +1,4 @@
-﻿package service;
+package service;
 
 import main.Rule;
 import model.Attribute;
@@ -54,12 +54,12 @@ public class AprioriService {
         }
         System.out.println("Hoàn thành quá trình tạo luật phù hợp");
         WriteFileService fileService = new WriteFileService();
-        System.out.println("Đang ghi file FI.txt...");
+        System.out.println("Dang ghi file FI.txt...");
         //fileService.writeItemSetToFile(resultF, "FI.txt");
         fileService.writeItemSetToFile(resultF, fileNameOutFI);
         waitMillisecond(600);
         System.out.println("Hoàn tất ghi file " + fileNameOutFI);
-        System.out.println("Đang ghi file AR.txt...");
+        System.out.println("Dang ghi file AR.txt...");
         //fileService.writeRulesToFile(associationRules, "AR.txt");
         fileService.writeRulesToFile(associationRules,fileNameOutAR);
         waitMillisecond(600);
@@ -124,7 +124,7 @@ public class AprioriService {
     }
 
     private Map<List<Attribute>, Double> calculateMinSupp(Map<List<Attribute>, Double> root) {
-        System.out.println("Loại bỏ ứng viên không phù hợp với minSupp");
+        System.out.println("Loai bo ung vien khong phu hop voi minSupp");
         Set<List<Attribute>> keySet = root.keySet();
         Map<List<Attribute>, Double> newMap = new HashMap<>();
 
@@ -202,7 +202,7 @@ public class AprioriService {
         while (true) {
             System.out.println("Tính toán minconf cho luật");
             rules = calculateMinConf(rules);
-            System.out.println("Loại bỏ các luật không phù hợp với minConf");
+            System.out.println("Loai bo các luật không phù hợp với minConf");
             rules = compactRules(rules);
             if (level == 2 && !rules.isEmpty()) {
                 previousResult.addAll(rules);
