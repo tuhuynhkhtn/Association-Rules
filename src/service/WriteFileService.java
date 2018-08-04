@@ -22,11 +22,11 @@ public class WriteFileService {
                 bufferedWriter.write(fSet.size() + "");
                 bufferedWriter.newLine();
                 for (List<Attribute> attributeList : fSet) {
+                    bufferedWriter.write(f.get(attributeList) + "\t");
                     for (Attribute attribute : attributeList) {
                         bufferedWriter.write(attribute.getmName().trim() + "\t");
 
                     }
-                    bufferedWriter.write(f.get(attributeList) + "");
                     bufferedWriter.newLine();
                 }
                 bufferedWriter.newLine();
